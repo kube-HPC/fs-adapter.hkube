@@ -1,10 +1,12 @@
 const { expect } = require('chai');
 const adapter = require('../lib/fs-adapter');
+const fs = require('fs-extra');
+const baseDir = 'storage/test/';
 
 describe('fs-adapter', () => {
     before(async () => {
         const options = {
-            baseDirectory: '/var/tmp/fs/storage/'
+            baseDirectory: baseDir
         };
         await adapter.init(options, null, true);
     });
@@ -24,5 +26,8 @@ describe('fs-adapter', () => {
         it('jobPath', async () => {
             await adapter.jobPath({ jobId: 'same-value-test', taskId: 'task-1', data: 'test' });
         });
+    });
+    after(() => {
+        fs.removeSync(baseDir);
     });
 });
