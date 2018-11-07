@@ -1,7 +1,7 @@
 const { expect } = require('chai');
 const adapter = require('../lib/fs-adapter');
 const fs = require('fs-extra');
-const baseDir = 'storage/fs/test/';
+const baseDir = 'storage/nfs/test/';
 const uuid = require('uuid/v4');
 
 describe('fs-adapter', () => {
