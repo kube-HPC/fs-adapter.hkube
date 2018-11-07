@@ -4,7 +4,7 @@ const adapter = require('../lib/fs-adapter');
 describe('fs-adapter', () => {
     before(async () => {
         const options = {
-            Directory: process.env.FS_DIRECTORY || '/var/tmp/fs/storage/'
+            baseDirectory: process.env.FS_DIRECTORY || '/var/tmp/fs/storage/'
         };
         await adapter.init(options, null, true);
     });
