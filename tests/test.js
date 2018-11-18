@@ -20,7 +20,7 @@ const DateFormat = 'YYYY-MM-DD';
 describe('fs-adapter', () => {
     before(async () => {
         const options = {
-            fs: { baseDirectory: baseDir }
+            baseDirectory: baseDir
         };
         await adapter.init(options, null, DIR_NAMES, true);
     });
