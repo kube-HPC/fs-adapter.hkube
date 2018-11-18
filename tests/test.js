@@ -20,7 +20,7 @@ const DateFormat = 'YYYY-MM-DD';
 describe('fs-adapter', () => {
     before(async () => {
         const options = {
-            baseDirectory: baseDir
+            fs: { baseDirectory: baseDir }
         };
         await adapter.init(options, null, DIR_NAMES, true);
     });
@@ -53,11 +53,11 @@ describe('fs-adapter', () => {
         });
         it('put and delete', async () => {
             const link = await adapter.put({ Path: path.join(DIR_NAMES.HKUBE_RESULTS, moment().format(DateFormat), uuid()), Data: 33 });
-            const res = await fs.pathExists(link.Path);
+            const res = await fs.pathExists(path.join(baseDir, link.Path));
             expect(res).to.equal(true);
 
             await adapter.delete(link);
-            const res1 = await fs.pathExists(link.Path);
+            const res1 = await fs.pathExists(path.join(baseDir, link.Path));
             expect(res1).to.equal(false);
         });
         it('put and list', async () => {
@@ -79,6 +79,6 @@ describe('fs-adapter', () => {
         });
     });
     after(() => {
-        Object.values(DIR_NAMES).forEach(dir => fs.removeSync(dir));
+        Object.values(DIR_NAMES).forEach(dir => fs.removeSync(path.join(baseDir, dir)));
     });
 });
