@@ -22,7 +22,7 @@ describe('fs-adapter', () => {
         const options = {
             baseDirectory: baseDir
         };
-        await adapter.init(options, null, DIR_NAMES, true);
+        await adapter.init(options, DIR_NAMES, true);
     });
     describe('put', () => {
         it('put and get same value', async () => {
@@ -75,6 +75,30 @@ describe('fs-adapter', () => {
             await adapter.put({ Path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, uuid()), Data: 'test11' });
 
             const res = await adapter.list({ Path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId) });
+            expect(res.length).to.equal(11);
+        });
+        it('put and list with prefix', async () => {
+            const jobId = uuid();
+            await adapter.put({ Path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, 'test1' + uuid()), Data: 'test1' });
+            await adapter.put({ Path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, 'test2' + uuid()), Data: 'test2' });
+            await adapter.put({ Path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, 'test3' + uuid()), Data: 'test3' });
+            await adapter.put({ Path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, 'test4' + uuid()), Data: 'test4' });
+            await adapter.put({ Path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, 'test5' + uuid()), Data: 'test5' });
+            await adapter.put({ Path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, 'test6' + uuid()), Data: 'test6' });
+            await adapter.put({ Path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, 'test7' + uuid()), Data: 'test7' });
+            await adapter.put({ Path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, 'test8' + uuid()), Data: 'test8' });
+            await adapter.put({ Path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, 'test9' + uuid()), Data: 'test9' });
+            await adapter.put({ Path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, 'test10' + uuid()), Data: 'test10' });
+            await adapter.put({ Path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, 'test11' + uuid()), Data: 'test11' });
+            await adapter.put({ Path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, 'xx' + uuid()), Data: 'test11' });
+            await adapter.put({ Path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, 'dd' + uuid()), Data: 'test11' });
+            await adapter.put({ Path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, 'ff' + uuid()), Data: 'test11' });
+            await adapter.put({ Path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, 'gg' + uuid()), Data: 'test11' });
+            await adapter.put({ Path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, 'f1', 'xx' + uuid()), Data: 'test11' });
+            await adapter.put({ Path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, 'f1', 'dd' + uuid()), Data: 'test11' });
+            await adapter.put({ Path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, 'f1', 'ff' + uuid()), Data: 'test11' });
+            await adapter.put({ Path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, 'f1', 'gg' + uuid()), Data: 'test11' });
+            const res = await adapter.list({ Path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, 'test') });
             expect(res.length).to.equal(11);
         });
     });
