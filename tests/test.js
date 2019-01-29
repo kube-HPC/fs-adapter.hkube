@@ -101,6 +101,25 @@ describe('fs-adapter', () => {
             const res = await adapter.list({ path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, 'test') });
             expect(res.length).to.equal(11);
         });
+        it.only('put and list prefix', async () => {
+            const jobId = uuid();
+            await adapter.put({ path: path.join(DIR_NAMES.HKUBE, moment('2015-01-27').format(DateFormat), jobId, 'test1' + uuid()), data: 'test1' });
+            await adapter.put({ path: path.join(DIR_NAMES.HKUBE, moment('2015-01-26').format(DateFormat), jobId, 'test2' + uuid()), data: 'test2' });
+            await adapter.put({ path: path.join(DIR_NAMES.HKUBE, moment('2015-01-25').format(DateFormat), jobId, 'test3' + uuid()), data: 'test3' });
+            await adapter.put({ path: path.join(DIR_NAMES.HKUBE, moment('2015-01-24').format(DateFormat), jobId, 'test4' + uuid()), data: 'test4' });
+            await adapter.put({ path: path.join(DIR_NAMES.HKUBE, moment('2015-01-23').format(DateFormat), jobId, 'test5' + uuid()), data: 'test5' });
+            await adapter.put({ path: path.join(DIR_NAMES.HKUBE, moment('2015-01-22').format(DateFormat), jobId, 'test6' + uuid()), data: 'test6' });
+            await adapter.put({ path: path.join(DIR_NAMES.HKUBE, moment('2015-01-21').format(DateFormat), jobId, 'test7' + uuid()), data: 'test7' });
+
+            const res = await adapter.listPrefixes({ path: DIR_NAMES.HKUBE });
+            expect(res.includes('2015-01-27')).to.be.true;
+            expect(res.includes('2015-01-26')).to.be.true;
+            expect(res.includes('2015-01-25')).to.be.true;
+            expect(res.includes('2015-01-24')).to.be.true;
+            expect(res.includes('2015-01-23')).to.be.true;
+            expect(res.includes('2015-01-22')).to.be.true;
+            expect(res.includes('2015-01-21')).to.be.true;
+        }).timeout(50000);
     });
     after(() => {
         Object.values(DIR_NAMES).forEach(dir => fs.removeSync(path.join(baseDir, dir)));
