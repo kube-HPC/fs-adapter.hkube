@@ -101,7 +101,7 @@ describe('fs-adapter', () => {
             const res = await adapter.list({ path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, 'test') });
             expect(res.length).to.equal(11);
         });
-        it.only('put and list prefix', async () => {
+        it('put and list prefix', async () => {
             const jobId = uuid();
             await adapter.put({ path: path.join(DIR_NAMES.HKUBE, moment('2015-01-27').format(DateFormat), jobId, 'test1' + uuid()), data: 'test1' });
             await adapter.put({ path: path.join(DIR_NAMES.HKUBE, moment('2015-01-26').format(DateFormat), jobId, 'test2' + uuid()), data: 'test2' });
