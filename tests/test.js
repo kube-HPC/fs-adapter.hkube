@@ -121,6 +121,26 @@ describe('fs-adapter', () => {
             expect(res.includes('2015-01-21')).to.be.true;
         }).timeout(50000);
     });
+    describe('Stream', () => {
+        it('put and get results same value', async () => {
+            return new Promise(async (resolve, reject) => {
+                const fileOut = path.join(adapter._baseDirectory, DIR_NAMES.HKUBE_STORE, 'stream-out.yml');
+                const readStream = fs.createReadStream('tests/mocks/stream.yml');
+                const fileInPath = path.join(DIR_NAMES.HKUBE_STORE, 'stream-in.yml');
+                const link = await adapter.putStream({ path: fileInPath, data: readStream });
+                const readable = await adapter.getStream(link);
+                const writable = fs.createWriteStream(fileOut);
+                const stream = readable.pipe(writable);
+                stream.on('finish', () => {
+                    const fileIn = path.join(adapter._baseDirectory, fileInPath);
+                    const inFile = fs.readFileSync(fileIn, 'utf8');
+                    const outFile = fs.readFileSync(fileOut, 'utf8');
+                    expect(inFile).to.equal(outFile);
+                    resolve();
+                });
+            });
+        });
+    });
     after(() => {
         Object.values(DIR_NAMES).forEach(dir => fs.removeSync(path.join(baseDir, dir)));
     });
