@@ -123,7 +123,7 @@ describe('fs-adapter', () => {
     });
     describe('Stream', () => {
         it('put and get results same value', async () => {
-            return new Promise(async (resolve, reject) => {
+            return new Promise(async (resolve) => {
                 const fileOut = path.join(adapter._baseDirectory, DIR_NAMES.HKUBE_STORE, 'stream-out.yml');
                 const readStream = fs.createReadStream('tests/mocks/stream.yml');
                 const fileInPath = path.join(DIR_NAMES.HKUBE_STORE, 'stream-in.yml');
