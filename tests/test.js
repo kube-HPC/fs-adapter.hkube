@@ -120,6 +120,19 @@ describe('fs-adapter', () => {
             expect(res.includes('2015-01-22')).to.be.true;
             expect(res.includes('2015-01-21')).to.be.true;
         }).timeout(50000);
+        it('list and get prefix', async () => {
+            const jobId = uuid();
+            const folder = uuid();
+            await adapter.put({ path: path.join(DIR_NAMES.HKUBE, folder, jobId, 'test1' + uuid()), data: 'test1' });
+            await adapter.put({ path: path.join(DIR_NAMES.HKUBE, folder, jobId, 'test2' + uuid()), data: 'test2' });
+
+            const res = await adapter.list({ path: path.join(DIR_NAMES.HKUBE, folder) });
+            expect(res.length).to.eql(2);
+            const file1 = await adapter.get(res[0]);
+            expect(file1).to.exist;
+            const file2 = await adapter.get(res[1]);
+            expect(file2).to.exist;            
+        }).timeout(50000);
     });
     describe('Stream', () => {
         it('put and get results same value', async () => {
