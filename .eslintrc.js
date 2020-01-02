@@ -10,7 +10,7 @@ module.exports = {
     ],
     "parserOptions": {
         "sourceType": "module",
-        "ecmaVersion": 2017
+        "ecmaVersion": 2018
     },
     "rules": {
         "no-param-reassign": "off",
@@ -31,6 +31,7 @@ module.exports = {
         "class-methods-use-this": "off",
         "no-unused-expressions": 0,
         "chai-friendly/no-unused-expressions": 2,
-        "no-await-in-loop": "off"
+        "no-await-in-loop": "off",
+        "arrow-parens": "off"
     }
 };
