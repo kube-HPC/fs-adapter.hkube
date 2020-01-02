@@ -32,6 +32,13 @@ describe('fs-adapter', () => {
             const res = await adapter.get(link);
             expect(res).to.equal('test');
         });
+        it('put and get same value binary', async () => {
+            const jobId = uuid();
+            const data = {command: 'start', data: {foo: 'bar', image: Buffer.alloc(10,0xfd)}};
+            const link = await adapter.put({ path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, uuid()), data });
+            const res = await adapter.get(link);
+            expect(res).to.eql(data);
+        });
         it('put and get results same value', async () => {
             const link = await adapter.put({ path: path.join(DIR_NAMES.HKUBE_RESULTS, moment().format(DateFormat), uuid()), data: 'test-result' });
             const res = await adapter.get(link);
