@@ -7,7 +7,7 @@ const path = require('path');
 const fs = require('fs-extra');
 const baseDir = 'storage/nfs/test/';
 const uuid = require('uuid/v4');
-const adapter = require('../lib/fs-adapter');
+const FsAdapter = require('../lib/fs-adapter');
 const DIR_NAMES = {
     HKUBE: 'data/hkube',
     HKUBE_RESULTS: 'data/hkube-results',
@@ -16,7 +16,7 @@ const DIR_NAMES = {
     HKUBE_EXECUTION: 'data/hkube-execution'
 };
 const DateFormat = 'YYYY-MM-DD';
-
+const adapter = new FsAdapter();
 describe('fs-adapter', () => {
     before(async () => {
         const options = {
