@@ -18,12 +18,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "bson": "^4.0.2",
     "fs-extra": "^8.1.0",
     "recursive-readdir": "^2.2.2",
     "uuid": "^3.3.3"
   },
   "devDependencies": {
+    "@hkube/encoding": "^1.0.7",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "coveralls": "^3.0.9",

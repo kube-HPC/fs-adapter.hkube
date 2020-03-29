@@ -5,6 +5,7 @@ const { expect } = chai;
 const moment = require('moment');
 const path = require('path');
 const fs = require('fs-extra');
+const { Encoding } = require('@hkube/encoding');
 const baseDir = 'storage/nfs/test/';
 const uuid = require('uuid/v4');
 const FsAdapter = require('../lib/fs-adapter');
@@ -17,14 +18,33 @@ const DIR_NAMES = {
 };
 const DateFormat = 'YYYY-MM-DD';
 const adapter = new FsAdapter();
+const encoding = new Encoding({ type: 'bson' });
 
 describe('fs-adapter', () => {
     before(async () => {
         const options = {
-            baseDirectory: baseDir,
-            binary: true
+            baseDirectory: baseDir
         };
         await adapter.init(options, DIR_NAMES, true);
+
+        const wrapperGet = (fn) => {
+            const wrapper = async (args) => {
+                const result = await fn(args);
+                return encoding.decode(result);
+            }
+            return wrapper;
+        }
+
+        const wrapperPut = (fn) => {
+            const wrapper = (args) => {
+                const data = encoding.encode(args.data);
+                return fn({ ...args, data });
+            }
+            return wrapper;
+        }
+
+        adapter.put = wrapperPut(adapter.put.bind(adapter));
+        adapter.get = wrapperGet(adapter.get.bind(adapter));
     });
     describe('put', () => {
         it('put and get same value', async () => {
@@ -35,14 +55,14 @@ describe('fs-adapter', () => {
         });
         it('put and get same value binary', async () => {
             const jobId = uuid();
-            const data = {command: 'start', data: {foo: 'bar', image: Buffer.alloc(10,0xfd)}};
+            const data = { command: 'start', data: { foo: 'bar', image: Buffer.alloc(10, 0xfd) } };
             const link = await adapter.put({ path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, uuid()), data });
             const res = await adapter.get(link);
             expect(res).to.eql(data);
         });
         it('put and get same value binary - large', async () => {
             const jobId = uuid();
-            const data = {command: 'start', data: {foo: 'bar', image: Buffer.alloc(50*1024*1024,0xfd), another: 'key'}};
+            const data = { command: 'start', data: { foo: 'bar', image: Buffer.alloc(50 * 1024 * 1024, 0xfd), another: 'key' } };
             const link = await adapter.put({ path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, uuid()), data });
             const res = await adapter.get(link);
             expect(res).to.deep.equal(data);
