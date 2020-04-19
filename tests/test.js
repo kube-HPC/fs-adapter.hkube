@@ -48,6 +48,10 @@ describe('fs-adapter', () => {
         adapter.get = wrapperGet(adapter.get.bind(adapter));
     });
     describe('put', () => {
+        it.skip('put and get same value', async () => {
+            const res = await adapter.get({ path:'file1'});
+            expect(res).to.equal('test');
+        });
         it('put and get same value', async () => {
             const jobId = uuid();
             const link = await adapter.put({ path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, uuid()), data: 'test' });
