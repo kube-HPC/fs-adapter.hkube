@@ -49,7 +49,7 @@ describe('fs-adapter', () => {
     });
     describe('put', () => {
         it.skip('put and get same value', async () => {
-            const res = await adapter.get({ path:'file1'});
+            const res = await adapter.get({ path: 'file1' });
             expect(res).to.equal('test');
         });
         it('put and get same value', async () => {
@@ -179,6 +179,68 @@ describe('fs-adapter', () => {
             const file2 = await adapter.get(res[1]);
             expect(file2).to.exist;
         }).timeout(50000);
+    });
+    describe('seek', () => {
+        it('seek from: 0', async () => {
+            const jobId = uuid();
+            const folder = uuid();
+            const data = 'my-new-value';
+            const filePath = path.join(DIR_NAMES.HKUBE, folder, jobId);
+            await adapter.put({ path: filePath, data });
+            const options = {
+                from: 0,
+                to: null,
+                path: filePath
+            }
+            const buffer = await adapter.seek(options);
+            const res = buffer.toString('utf8');
+            expect(res).to.equal(encoding.encode(data));
+        });
+        it('seek from: 0 to: 0', async () => {
+            const jobId = uuid();
+            const folder = uuid();
+            const data = 'my-new-value';
+            const filePath = path.join(DIR_NAMES.HKUBE, folder, jobId);
+            await adapter.put({ path: filePath, data });
+            const options = {
+                from: 0,
+                to: 0,
+                path: filePath
+            }
+            const buffer = await adapter.seek(options);
+            const res = buffer.toString('utf8');
+            expect(res).to.equal("");
+        });
+        it('seek from: 0 to: 6', async () => {
+            const jobId = uuid();
+            const folder = uuid();
+            const data = 'my-new-value';
+            const filePath = path.join(DIR_NAMES.HKUBE, folder, jobId);
+            await adapter.put({ path: filePath, data });
+            const options = {
+                from: 0,
+                to: 6,
+                path: filePath
+            }
+            const buffer = await adapter.seek(options);
+            const res = buffer.toString('utf8');
+            expect(res).to.equal(`"my-ne`);
+        });
+        it('seek to: -6', async () => {
+            const jobId = uuid();
+            const folder = uuid();
+            const data = 'my-new-value';
+            const filePath = path.join(DIR_NAMES.HKUBE, folder, jobId);
+            await adapter.put({ path: filePath, data });
+            const options = {
+                from: null,
+                to: -6,
+                path: filePath
+            }
+            const buffer = await adapter.seek(options);
+            const res = buffer.toString('utf8');
+            expect(res).to.equal(`value"`);
+        });
     });
     describe('Stream', () => {
         it('put and get results same value', async () => {
