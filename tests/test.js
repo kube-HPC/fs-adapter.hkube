@@ -5,7 +5,7 @@ const { expect } = chai;
 const moment = require('moment');
 const path = require('path');
 const fs = require('fs-extra');
-const { Encoding } = require('@hkube/encoding');
+const { Encoding, EncodingTypes } = require('@hkube/encoding');
 const baseDir = 'storage/nfs/test/';
 const uuid = require('uuid/v4');
 const FsAdapter = require('../lib/fs-adapter');
@@ -181,60 +181,60 @@ describe('fs-adapter', () => {
         }).timeout(50000);
     });
     describe('seek', () => {
-        it('seek from: 0', async () => {
+        it('seek start: 0', async () => {
             const jobId = uuid();
             const folder = uuid();
             const data = 'my-new-value';
             const filePath = path.join(DIR_NAMES.HKUBE, folder, jobId);
             await adapter.put({ path: filePath, data });
             const options = {
-                from: 0,
-                to: null,
+                start: 0,
+                end: null,
                 path: filePath
             }
             const buffer = await adapter.seek(options);
             const res = buffer.toString('utf8');
             expect(res).to.equal(encoding.encode(data));
         });
-        it('seek from: 0 to: 0', async () => {
+        it('seek start: 0 end: 0', async () => {
             const jobId = uuid();
             const folder = uuid();
             const data = 'my-new-value';
             const filePath = path.join(DIR_NAMES.HKUBE, folder, jobId);
             await adapter.put({ path: filePath, data });
             const options = {
-                from: 0,
-                to: 0,
+                start: 0,
+                end: 0,
                 path: filePath
             }
             const buffer = await adapter.seek(options);
             const res = buffer.toString('utf8');
             expect(res).to.equal("");
         });
-        it('seek from: 0 to: 6', async () => {
+        it('seek start: 0 end: 6', async () => {
             const jobId = uuid();
             const folder = uuid();
             const data = 'my-new-value';
             const filePath = path.join(DIR_NAMES.HKUBE, folder, jobId);
             await adapter.put({ path: filePath, data });
             const options = {
-                from: 0,
-                to: 6,
+                start: 0,
+                end: 6,
                 path: filePath
             }
             const buffer = await adapter.seek(options);
             const res = buffer.toString('utf8');
             expect(res).to.equal(`"my-ne`);
         });
-        it('seek to: -6', async () => {
+        it('seek end: -6', async () => {
             const jobId = uuid();
             const folder = uuid();
             const data = 'my-new-value';
             const filePath = path.join(DIR_NAMES.HKUBE, folder, jobId);
             await adapter.put({ path: filePath, data });
             const options = {
-                from: null,
-                to: -6,
+                start: null,
+                end: -6,
                 path: filePath
             }
             const buffer = await adapter.seek(options);
