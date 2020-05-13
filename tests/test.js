@@ -181,21 +181,6 @@ describe('fs-adapter', () => {
         }).timeout(50000);
     });
     describe('seek', () => {
-        it('seek start: 0', async () => {
-            const jobId = uuid();
-            const folder = uuid();
-            const data = 'my-new-value';
-            const filePath = path.join(DIR_NAMES.HKUBE, folder, jobId);
-            await adapter.put({ path: filePath, data });
-            const options = {
-                start: 0,
-                end: null,
-                path: filePath
-            }
-            const buffer = await adapter.seek(options);
-            const res = buffer.toString('utf8');
-            expect(res).to.equal(encoding.encode(data));
-        });
         it('seek start: 0 end: 0', async () => {
             const jobId = uuid();
             const folder = uuid();
@@ -225,21 +210,6 @@ describe('fs-adapter', () => {
             const buffer = await adapter.seek(options);
             const res = buffer.toString('utf8');
             expect(res).to.equal(`"my-ne`);
-        });
-        it('seek end: -6', async () => {
-            const jobId = uuid();
-            const folder = uuid();
-            const data = 'my-new-value';
-            const filePath = path.join(DIR_NAMES.HKUBE, folder, jobId);
-            await adapter.put({ path: filePath, data });
-            const options = {
-                start: null,
-                end: -6,
-                path: filePath
-            }
-            const buffer = await adapter.seek(options);
-            const res = buffer.toString('utf8');
-            expect(res).to.equal(`value"`);
         });
     });
     describe('Stream', () => {
