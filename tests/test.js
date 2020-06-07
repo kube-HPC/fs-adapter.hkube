@@ -5,6 +5,7 @@ const { expect } = chai;
 const moment = require('moment');
 const path = require('path');
 const fs = require('fs-extra');
+const { Encoding, EncodingTypes } = require('@hkube/encoding');
 const baseDir = 'storage/nfs/test/';
 const uuid = require('uuid/v4');
 const FsAdapter = require('../lib/fs-adapter');
@@ -17,19 +18,51 @@ const DIR_NAMES = {
 };
 const DateFormat = 'YYYY-MM-DD';
 const adapter = new FsAdapter();
+const encoding = new Encoding({ type: 'json' });
+
+
 describe('fs-adapter', () => {
     before(async () => {
         const options = {
             baseDirectory: baseDir
         };
         await adapter.init(options, DIR_NAMES, true);
+
+        const wrapperGet = (fn) => {
+            const wrapper = async (args) => {
+                const result = await fn(args);
+                return encoding.decode(result);
+            }
+            return wrapper;
+        }
+
+        const wrapperPut = (fn) => {
+            const wrapper = (args) => {
+                const data = encoding.encode(args.data);
+                return fn({ ...args, data });
+            }
+            return wrapper;
+        }
+
+        adapter.put = wrapperPut(adapter.put.bind(adapter));
+        adapter.get = wrapperGet(adapter.get.bind(adapter));
     });
     describe('put', () => {
+        it.skip('put and get same value', async () => {
+            const res = await adapter.get({ path: 'file1' });
+            expect(res).to.equal('test');
+        });
         it('put and get same value', async () => {
             const jobId = uuid();
             const link = await adapter.put({ path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, uuid()), data: 'test' });
             const res = await adapter.get(link);
             expect(res).to.equal('test');
+        });
+        it('put and get same value', async () => {
+            const jobId = uuid();
+            const link = await adapter.put({ path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, uuid()), data: 'test' });
+            const res = await adapter.getMetadata(link);
+            expect(res.size).to.equal(6);
         });
         it('put and get results same value', async () => {
             const link = await adapter.put({ path: path.join(DIR_NAMES.HKUBE_RESULTS, moment().format(DateFormat), uuid()), data: 'test-result' });
@@ -146,6 +179,38 @@ describe('fs-adapter', () => {
             const file2 = await adapter.get(res[1]);
             expect(file2).to.exist;
         }).timeout(50000);
+    });
+    describe('seek', () => {
+        it('seek start: 0 end: 0', async () => {
+            const jobId = uuid();
+            const folder = uuid();
+            const data = 'my-new-value';
+            const filePath = path.join(DIR_NAMES.HKUBE, folder, jobId);
+            await adapter.put({ path: filePath, data });
+            const options = {
+                start: 0,
+                end: 0,
+                path: filePath
+            }
+            const buffer = await adapter.seek(options);
+            const res = buffer.toString('utf8');
+            expect(res).to.equal("");
+        });
+        it('seek start: 0 end: 6', async () => {
+            const jobId = uuid();
+            const folder = uuid();
+            const data = 'my-new-value';
+            const filePath = path.join(DIR_NAMES.HKUBE, folder, jobId);
+            await adapter.put({ path: filePath, data });
+            const options = {
+                start: 0,
+                end: 6,
+                path: filePath
+            }
+            const buffer = await adapter.seek(options);
+            const res = buffer.toString('utf8');
+            expect(res).to.equal(`"my-ne`);
+        });
     });
     describe('Stream', () => {
         it('put and get results same value', async () => {

@@ -1,6 +1,6 @@
 {
   "name": "@hkube/fs-adapter",
-  "version": "1.0.31",
+  "version": "2.0.5",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -18,12 +18,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "bson": "^4.0.2",
-    "fs-extra": "^8.1.0",
-    "recursive-readdir": "^2.2.2",
-    "uuid": "^3.3.3"
+    "fs-extra": "^9.0.0",
+    "recursive-readdir": "^2.2.2"
   },
   "devDependencies": {
+    "@hkube/encoding": "^1.0.8",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "coveralls": "^3.0.9",
@@ -35,6 +34,7 @@
     "mocha": "^6.2.2",
     "moment": "^2.24.0",
     "pre-commit": "^1.2.2",
-    "sinon": "^7.5.0"
+    "sinon": "^7.5.0",
+    "uuid": "^7.0.2"
   }
 }
