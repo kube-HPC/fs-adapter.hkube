@@ -45,16 +45,18 @@ describe('fs-adapter', () => {
         }
 
         const wrapperAppend = (fn) => {
-            const wrapper = (args) => {
-                const data = encoding.encode(args.data);
-                return fn({ ...args, data });
+            const wrapper = (fd, d) => {
+                const data = encoding.encode(d);
+                return fn(fd, data);
             }
             return wrapper;
         }
+        fs.originalAppendFile = fs.appendFile;
+        fs.appendFile = wrapperAppend(fs.appendFile);
         adapter.originalGet = adapter.get;
         adapter.put = wrapperPut(adapter.put.bind(adapter));
         adapter.get = wrapperGet(adapter.get.bind(adapter));
-        adapter.append = wrapperAppend(adapter.append.bind(adapter));
+
     });
     describe('put', () => {
         it.skip('put and get same value', async () => {
@@ -249,10 +251,10 @@ describe('fs-adapter', () => {
         });
         it('should append multiple times to file', async () => {
             const uid = uuid();
-            await adapter.append({ path: path.join(DIR_NAMES.HKUBE, uid), data: 1 });
-            await adapter.append({ path: path.join(DIR_NAMES.HKUBE, uid), data: 2 });
-            await adapter.append({ path: path.join(DIR_NAMES.HKUBE, uid), data: 3 });
-            const link = await adapter.append({ path: path.join(DIR_NAMES.HKUBE, uid), data: 4 });
+            await adapter.append({ path: path.join(DIR_NAMES.HKUBE, uid), data: [1] });
+            await adapter.append({ path: path.join(DIR_NAMES.HKUBE, uid), data: [2] });
+            await adapter.append({ path: path.join(DIR_NAMES.HKUBE, uid), data: [3] });
+            const link = await adapter.append({ path: path.join(DIR_NAMES.HKUBE, uid), data: [4] });
             const res = await adapter.get(link);
             expect(res).to.equal(1234);
         });
@@ -263,10 +265,10 @@ describe('fs-adapter', () => {
             const part3 = Buffer.alloc(150000);
             const concat = Buffer.concat([part1, part2, part3]);
             const data = [part1, part2, part3];
-            const link = await adapter.appendMultiParts({ path: path.join(DIR_NAMES.HKUBE, uid), data });
+            fs.appendFile = fs.originalAppendFile;
+            const link = await adapter.append({ path: path.join(DIR_NAMES.HKUBE, uid), data });
             const res = await adapter.originalGet(link);
             expect(res).to.eql(concat);
-
         });
     });
     after(() => {
