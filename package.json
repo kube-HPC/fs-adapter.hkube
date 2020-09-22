@@ -22,7 +22,7 @@
     "recursive-readdir": "^2.2.2"
   },
   "devDependencies": {
-    "@hkube/encoding": "^1.0.8",
+    "@hkube/encoding": "^1.0.20",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "coveralls": "^3.0.9",

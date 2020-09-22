@@ -18,7 +18,7 @@ const DIR_NAMES = {
 };
 const DateFormat = 'YYYY-MM-DD';
 const adapter = new FsAdapter();
-const encoding = new Encoding({ type: 'json' });
+const encoding = new Encoding({ type: 'msgpack' });
 
 
 describe('fs-adapter', () => {
@@ -44,16 +44,8 @@ describe('fs-adapter', () => {
             return wrapper;
         }
 
-        const wrapperAppend = (fn) => {
-            const wrapper = (fd, d) => {
-                const data = encoding.encode(d);
-                return fn(fd, data);
-            }
-            return wrapper;
-        }
-        fs.originalAppendFile = fs.appendFile;
-        fs.appendFile = wrapperAppend(fs.appendFile);
         adapter.originalGet = adapter.get;
+        adapter.originalPut = adapter.put;
         adapter.put = wrapperPut(adapter.put.bind(adapter));
         adapter.get = wrapperGet(adapter.get.bind(adapter));
 
@@ -73,7 +65,7 @@ describe('fs-adapter', () => {
             const jobId = uuid();
             const link = await adapter.put({ path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, uuid()), data: 'test' });
             const res = await adapter.getMetadata(link);
-            expect(res.size).to.equal(6);
+            expect(res.size).to.equal(5);
         });
         it('put and get results same value', async () => {
             const link = await adapter.put({ path: path.join(DIR_NAMES.HKUBE_RESULTS, moment().format(DateFormat), uuid()), data: 'test-result' });
@@ -214,13 +206,13 @@ describe('fs-adapter', () => {
             const filePath = path.join(DIR_NAMES.HKUBE, folder, jobId);
             await adapter.put({ path: filePath, data });
             const options = {
-                start: 0,
+                start: 1,
                 end: 6,
                 path: filePath
             }
             const buffer = await adapter.seek(options);
             const res = buffer.toString('utf8');
-            expect(res).to.equal(`"my-ne`);
+            expect(res).to.equal('my-ne');
         });
     });
     describe('Stream', () => {
@@ -243,32 +235,30 @@ describe('fs-adapter', () => {
             });
         });
     });
-    describe('append', () => {
-        it('put and get same value', async () => {
-            const link = await adapter.append({ path: path.join(DIR_NAMES.HKUBE, uuid()), data: 'test' });
-            const res = await adapter.get(link);
-            expect(res).to.equal('test');
-        });
-        it('should append multiple times to file', async () => {
+    describe('header/data', () => {
+        it('should put and get buffer header and data', async () => {
             const uid = uuid();
-            await adapter.append({ path: path.join(DIR_NAMES.HKUBE, uid), data: [1] });
-            await adapter.append({ path: path.join(DIR_NAMES.HKUBE, uid), data: [2] });
-            await adapter.append({ path: path.join(DIR_NAMES.HKUBE, uid), data: [3] });
-            const link = await adapter.append({ path: path.join(DIR_NAMES.HKUBE, uid), data: [4] });
-            const res = await adapter.get(link);
-            expect(res).to.equal(1234);
-        });
-        it('should append multi parts append to file', async () => {
-            const uid = uuid();
-            const part1 = Buffer.alloc(15);
-            const part2 = Buffer.alloc(15000);
-            const part3 = Buffer.alloc(150000);
-            const concat = Buffer.concat([part1, part2, part3]);
-            const data = [part1, part2, part3];
-            fs.appendFile = fs.originalAppendFile;
-            const link = await adapter.append({ path: path.join(DIR_NAMES.HKUBE, uid), data });
+            const header = Buffer.alloc(15);
+            const data = Buffer.alloc(25);
+            const concat = Buffer.concat([header, data]);
+            const link = await adapter.originalPut({ path: path.join(DIR_NAMES.HKUBE, uid), header, data });
             const res = await adapter.originalGet(link);
-            expect(res).to.eql(concat);
+            const buffer = Buffer.from(res, 'utf-8');
+            expect(buffer).to.eql(concat);
+        });
+        it('should put and get object header and data', async () => {
+            const uid = uuid();
+            const header = Buffer.alloc(15);
+            const obj = {
+                data: '12345',
+                more: [1, 2, 3, 4, 5]
+            }
+            const data = encoding.encode(obj);
+            const link = await adapter.originalPut({ path: path.join(DIR_NAMES.HKUBE, uid), header, data });
+            const res = await adapter.originalGet(link);
+            const value = res.slice(header.length, res.length);
+            const decoded = encoding.decode(value);
+            expect(decoded).to.eql(obj);
         });
     });
     after(() => {
