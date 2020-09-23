@@ -244,8 +244,9 @@ describe('fs-adapter', () => {
             buffer[2] = 30;
             buffer[3] = 40;
             const header = buffer;
+            const metadata = { header };
             const data = Buffer.alloc(10);
-            const link = await adapter.originalPut({ path: path.join(DIR_NAMES.HKUBE, uid), header, data });
+            const link = await adapter.originalPut({ path: path.join(DIR_NAMES.HKUBE, uid), metadata, data });
             const res = await adapter.getHeader(link);
             expect(res).to.eql(header);
         });
@@ -254,10 +255,10 @@ describe('fs-adapter', () => {
             const header = Buffer.alloc(15);
             const data = Buffer.alloc(25);
             const concat = Buffer.concat([header, data]);
-            const link = await adapter.originalPut({ path: path.join(DIR_NAMES.HKUBE, uid), header, data });
+            const metadata = { header };
+            const link = await adapter.originalPut({ path: path.join(DIR_NAMES.HKUBE, uid), metadata, data });
             const res = await adapter.originalGet(link);
-            const buffer = Buffer.from(res, 'utf-8');
-            expect(buffer).to.eql(concat);
+            expect(res).to.eql(concat);
         });
         it('should put and get object header and data', async () => {
             const uid = uuid();
@@ -267,7 +268,8 @@ describe('fs-adapter', () => {
                 more: [1, 2, 3, 4, 5]
             }
             const data = encoding.encode(obj);
-            const link = await adapter.originalPut({ path: path.join(DIR_NAMES.HKUBE, uid), header, data });
+            const metadata = { header };
+            const link = await adapter.originalPut({ path: path.join(DIR_NAMES.HKUBE, uid), metadata, data });
             const res = await adapter.originalGet(link);
             const value = res.slice(header.length, res.length);
             const decoded = encoding.decode(value);
