@@ -236,6 +236,19 @@ describe('fs-adapter', () => {
         });
     });
     describe('header/data', () => {
+        it('should put and get buffer header', async () => {
+            const uid = uuid();
+            const buffer = Buffer.alloc(8);
+            buffer[0] = 10;
+            buffer[1] = 20;
+            buffer[2] = 30;
+            buffer[3] = 40;
+            const header = buffer;
+            const data = Buffer.alloc(10);
+            const link = await adapter.originalPut({ path: path.join(DIR_NAMES.HKUBE, uid), header, data });
+            const res = await adapter.getHeader(link);
+            expect(res).to.eql(header);
+        });
         it('should put and get buffer header and data', async () => {
             const uid = uuid();
             const header = Buffer.alloc(15);
