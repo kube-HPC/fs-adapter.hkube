@@ -20,6 +20,26 @@ const DateFormat = 'YYYY-MM-DD';
 const adapter = new FsAdapter();
 const encoding = new Encoding({ type: 'msgpack' });
 
+const wrapperGet = (fn) => {
+    const wrapper = async (args) => {
+        const result = await fn(args);
+        return encoding.decode(result);
+    }
+    return wrapper;
+}
+
+const wrapperPut = (fn) => {
+    const wrapper = (args) => {
+        const data = encoding.encode(args.data);
+        return fn({ ...args, data });
+    }
+    return wrapper;
+}
+
+adapter.originalGet = adapter.get;
+adapter.originalPut = adapter.put;
+adapter.put = wrapperPut(adapter.put.bind(adapter));
+adapter.get = wrapperGet(adapter.get.bind(adapter));
 
 describe('fs-adapter', () => {
     before(async () => {
@@ -27,28 +47,6 @@ describe('fs-adapter', () => {
             baseDirectory: baseDir
         };
         await adapter.init(options, DIR_NAMES, true);
-
-        const wrapperGet = (fn) => {
-            const wrapper = async (args) => {
-                const result = await fn(args);
-                return encoding.decode(result);
-            }
-            return wrapper;
-        }
-
-        const wrapperPut = (fn) => {
-            const wrapper = (args) => {
-                const data = encoding.encode(args.data);
-                return fn({ ...args, data });
-            }
-            return wrapper;
-        }
-
-        adapter.originalGet = adapter.get;
-        adapter.originalPut = adapter.put;
-        adapter.put = wrapperPut(adapter.put.bind(adapter));
-        adapter.get = wrapperGet(adapter.get.bind(adapter));
-
     });
     describe('put', () => {
         it.skip('put and get same value', async () => {
@@ -249,6 +247,21 @@ describe('fs-adapter', () => {
             const link = await adapter.originalPut({ path: path.join(DIR_NAMES.HKUBE, uid), metadata, data });
             const res = await adapter.getMetadata(link);
             expect(res.metadata).to.eql(metadata);
+        });
+        it('should getWithMetaData', async () => {
+            const uid = uuid();
+            const header = Buffer.alloc(8, 5);
+            const metadata = { header };
+            const data = Buffer.alloc(10, 10);
+            const headerWithData = Buffer.concat([header, data]);
+            adapter.get = adapter.originalGet;
+            const link = await adapter.originalPut({ path: path.join(DIR_NAMES.HKUBE, uid), metadata, data });
+            const res = await adapter.getWithMetaData(link);
+            adapter.get = wrapperGet(adapter.get.bind(adapter));
+            expect(res.data).to.eql(headerWithData);
+            expect(res.headerInData).to.eql(true);
+            expect(res.metadata.header).to.eql(header);
+            expect(res.size).to.eql(headerWithData.length);
         });
         it('should put and get buffer header and data', async () => {
             const uid = uuid();
