@@ -5,7 +5,7 @@ const { expect } = chai;
 const moment = require('moment');
 const path = require('path');
 const fs = require('fs-extra');
-const { Encoding, EncodingTypes } = require('@hkube/encoding');
+const { Encoding } = require('@hkube/encoding');
 const baseDir = 'storage/nfs/test/';
 const uuid = require('uuid/v4');
 const FsAdapter = require('../lib/fs-adapter');
@@ -18,7 +18,7 @@ const DIR_NAMES = {
 };
 const DateFormat = 'YYYY-MM-DD';
 const adapter = new FsAdapter();
-const encoding = new Encoding({ type: 'json' });
+const encoding = new Encoding({ type: 'msgpack' });
 
 
 describe('fs-adapter', () => {
@@ -44,8 +44,11 @@ describe('fs-adapter', () => {
             return wrapper;
         }
 
+        adapter.originalGet = adapter.get;
+        adapter.originalPut = adapter.put;
         adapter.put = wrapperPut(adapter.put.bind(adapter));
         adapter.get = wrapperGet(adapter.get.bind(adapter));
+
     });
     describe('put', () => {
         it.skip('put and get same value', async () => {
@@ -62,7 +65,7 @@ describe('fs-adapter', () => {
             const jobId = uuid();
             const link = await adapter.put({ path: path.join(DIR_NAMES.HKUBE, moment().format(DateFormat), jobId, uuid()), data: 'test' });
             const res = await adapter.getMetadata(link);
-            expect(res.size).to.equal(6);
+            expect(res.size).to.equal(5);
         });
         it('put and get results same value', async () => {
             const link = await adapter.put({ path: path.join(DIR_NAMES.HKUBE_RESULTS, moment().format(DateFormat), uuid()), data: 'test-result' });
@@ -203,13 +206,13 @@ describe('fs-adapter', () => {
             const filePath = path.join(DIR_NAMES.HKUBE, folder, jobId);
             await adapter.put({ path: filePath, data });
             const options = {
-                start: 0,
+                start: 1,
                 end: 6,
                 path: filePath
             }
             const buffer = await adapter.seek(options);
             const res = buffer.toString('utf8');
-            expect(res).to.equal(`"my-ne`);
+            expect(res).to.equal('my-ne');
         });
     });
     describe('Stream', () => {
@@ -230,6 +233,47 @@ describe('fs-adapter', () => {
                     resolve();
                 });
             });
+        });
+    });
+    describe('header/data', () => {
+        it('should put and get buffer header', async () => {
+            const uid = uuid();
+            const buffer = Buffer.alloc(8);
+            buffer[0] = 10;
+            buffer[1] = 20;
+            buffer[2] = 30;
+            buffer[3] = 40;
+            const header = buffer;
+            const metadata = { header };
+            const data = Buffer.alloc(10);
+            const link = await adapter.originalPut({ path: path.join(DIR_NAMES.HKUBE, uid), metadata, data });
+            const res = await adapter.getHeader(link);
+            expect(res).to.eql(header);
+        });
+        it('should put and get buffer header and data', async () => {
+            const uid = uuid();
+            const header = Buffer.alloc(15);
+            const data = Buffer.alloc(25);
+            const concat = Buffer.concat([header, data]);
+            const metadata = { header };
+            const link = await adapter.originalPut({ path: path.join(DIR_NAMES.HKUBE, uid), metadata, data });
+            const res = await adapter.originalGet(link);
+            expect(res).to.eql(concat);
+        });
+        it('should put and get object header and data', async () => {
+            const uid = uuid();
+            const header = Buffer.alloc(15);
+            const obj = {
+                data: '12345',
+                more: [1, 2, 3, 4, 5]
+            }
+            const data = encoding.encode(obj);
+            const metadata = { header };
+            const link = await adapter.originalPut({ path: path.join(DIR_NAMES.HKUBE, uid), metadata, data });
+            const res = await adapter.originalGet(link);
+            const value = res.slice(header.length, res.length);
+            const decoded = encoding.decode(value);
+            expect(decoded).to.eql(obj);
         });
     });
     after(() => {
