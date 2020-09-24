@@ -247,8 +247,8 @@ describe('fs-adapter', () => {
             const metadata = { header };
             const data = Buffer.alloc(10);
             const link = await adapter.originalPut({ path: path.join(DIR_NAMES.HKUBE, uid), metadata, data });
-            const res = await adapter.getHeader(link);
-            expect(res).to.eql(header);
+            const res = await adapter.getMetadata(link);
+            expect(res.metadata).to.eql(metadata);
         });
         it('should put and get buffer header and data', async () => {
             const uid = uuid();
