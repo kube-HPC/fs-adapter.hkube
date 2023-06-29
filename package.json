@@ -19,7 +19,7 @@
   "license": "ISC",
   "dependencies": {
     "fs-extra": "^9.0.1",
-    "recursive-readdir": "^2.2.2"
+    "recursive-readdir": "^2.2.3"
   },
   "devDependencies": {
     "@hkube/encoding": "^1.0.20",
